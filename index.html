@@ -10,8 +10,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="CheckTracker" />
-<!-- Production: add custom domains to ct-official-hosts and paste a Firebase App Check reCAPTCHA Enterprise site key. -->
-<meta name="ct-official-hosts" content="kavityretrading-bfd7d.web.app,kavityretrading-bfd7d.firebaseapp.com" />
+<!-- Deployment hosts: comma-separated. Wildcards like *.github.io supported. Add your custom domain here. This is a deterrent — real enforcement is Firebase App Check + Database Rules (see setup modal). -->
+<meta name="ct-official-hosts" content="kavityretrading-bfd7d.web.app,kavityretrading-bfd7d.firebaseapp.com,*.github.io,*.web.app,*.firebaseapp.com,*.pages.dev,*.vercel.app,*.netlify.app" />
+<!-- Paste your Firebase App Check reCAPTCHA Enterprise site key below before production. -->
 <meta name="ct-app-check-key" content="" />
 <title>Check Tracker — Secure Check & Bill Command Center</title>
 <link id="pwaManifest" rel="manifest" />
@@ -968,7 +969,7 @@ import { getDatabase, ref, push, set, update, remove, onValue, off, query, order
 (function () {
   'use strict';
 
-  /* The host gate is a deterrent. Firebase Rules + App Check are the actual trust boundary. */
+  /* Host gate = visible deterrent. True enforcement = Firebase Rules + App Check + API-key restrictions. */
   var deployMeta = document.querySelector('meta[name="ct-official-hosts"]');
   var keyMeta = document.querySelector('meta[name="ct-app-check-key"]');
   var deploymentConfig = {
@@ -977,12 +978,37 @@ import { getDatabase, ref, push, set, update, remove, onValue, off, query, order
   };
   var host = String(location.hostname || '').toLowerCase();
   var localDev = host === 'localhost' || host === '127.0.0.1' || host === '[::1]';
-  var officialHost = localDev || deploymentConfig.officialHosts.indexOf(host) >= 0;
+  function hostMatches(entry, h) {
+    if (!entry) return false;
+    if (entry.charAt(0) === '*') { var suf = entry.slice(1); if (suf.charAt(0) === '.') suf = suf.slice(1); return h === suf || h.slice(-(suf.length + 1)) === '.' + suf; }
+    return h === entry;
+  }
+  var officialHost = localDev || deploymentConfig.officialHosts.some(function (e2) { return hostMatches(e2, host); });
   var secureOrigin = location.protocol === 'https:' || localDev;
-  if (!officialHost || !secureOrigin || location.protocol === 'file:') {
+  var blockedReason = null;
+  if (location.protocol === 'file:' || !host) blockedReason = 'file';
+  else if (!secureOrigin) blockedReason = 'https';
+  else if (!officialHost) blockedReason = 'host';
+  if (blockedReason) {
+    var safeHost = String(host || 'local file').replace(/[<>&"']/g, '');
+    var reason = blockedReason === 'file'
+      ? 'Downloaded copies of index.html will not run — it must be served from your approved hosting (GitHub Pages, Firebase Hosting) or a local dev server (localhost).'
+      : blockedReason === 'https'
+      ? 'Check Tracker requires a secure HTTPS origin.'
+      : 'This origin is not on the approved deployment list for this build.';
+    var fixHtml = blockedReason === 'host'
+      ? 'Add this host to the <b>ct-official-hosts</b> meta tag inside index.html, then redeploy. Wildcards like <b>*.github.io</b> are supported.'
+      : 'Upload index.html to GitHub Pages or Firebase Hosting over HTTPS.';
     var blocked = document.createElement('div');
-    blocked.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#04060c;color:#e8edf6;display:flex;align-items:center;justify-content:center;padding:24px;font-family:Inter,system-ui,sans-serif;text-align:center;';
-    blocked.innerHTML = '<div style="max-width:430px;padding:32px;border:1px solid rgba(251,113,133,.3);border-radius:28px;background:rgba(255,255,255,.035);"><div style="width:58px;height:58px;margin:0 auto 18px;border-radius:18px;display:flex;align-items:center;justify-content:center;background:rgba(251,113,133,.12);color:#fb7185;font-size:26px;">!</div><h1 style="font-size:21px;margin:0 0 10px;">Unofficial Deployment Blocked</h1><p style="font-size:13px;line-height:1.65;color:#93a2bc;margin:0;">Check Tracker only runs from an approved HTTPS origin. Downloaded files and copied deployments cannot connect to the production service.</p><p style="font-size:11px;color:#5b6a82;margin:16px 0 0;">Origin: ' + String(location.origin || 'local file').replace(/[&<>"']/g, '') + '</p></div>';
+    blocked.setAttribute('style', 'position:fixed;inset:0;z-index:99999;background:#04060c;color:#e8edf6;display:flex;align-items:center;justify-content:center;padding:24px;font-family:Inter,system-ui,sans-serif;');
+    blocked.innerHTML =
+      '<div style="max-width:460px;width:100%;padding:34px;border:1px solid rgba(251,113,133,.3);border-radius:28px;background:rgba(255,255,255,.035);text-align:center;">' +
+        '<div style="width:58px;height:58px;margin:0 auto 18px;border-radius:18px;display:flex;align-items:center;justify-content:center;background:rgba(251,113,133,.12);color:#fb7185;font:800 26px Inter,sans-serif;">!</div>' +
+        '<h1 style="font:800 21px Inter,sans-serif;margin:0 0 10px;">Deployment Not Authorized</h1>' +
+        '<p style="font-size:13px;line-height:1.65;color:#93a2bc;margin:0;">' + reason + '</p>' +
+        '<div style="margin:16px 0;padding:9px 14px;border-radius:10px;background:rgba(34,211,238,.07);border:1px solid rgba(34,211,238,.25);color:#7dd3fc;font:600 12px ui-monospace,monospace;word-break:break-all;">' + safeHost + '</div>' +
+        '<div style="font-size:12px;line-height:1.7;color:#8494ae;text-align:left;padding:14px 16px;border-radius:12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);"><span style="color:#34d399;font-weight:800;">Owner fix:</span> ' + fixHtml + '<br><span style="color:#5b6a82;font-size:11px;">This gate slows down copied builds — Firebase App Check + Database Rules remain the real enforcement.</span></div>' +
+      '</div>';
     document.body.appendChild(blocked);
     var splashBlocked = document.getElementById('splash'); if (splashBlocked) splashBlocked.style.display = 'none';
     window.__ctBooted = true;
