@@ -1,0 +1,29 @@
+{
+  "id": "./",
+  "name": "Check Tracker - Secure Financial Command Center",
+  "short_name": "CheckTracker",
+  "description": "Scan, schedule and securely track checks, bills and financial calendar events.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone"],
+  "orientation": "any",
+  "background_color": "#04060c",
+  "theme_color": "#04060c",
+  "categories": ["finance", "business", "productivity"],
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "./favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "./favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

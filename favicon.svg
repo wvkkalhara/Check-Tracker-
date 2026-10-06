@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Check Tracker">
+  <defs>
+    <linearGradient id="bg" x1="72" y1="42" x2="438" y2="470" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#34d399"/>
+      <stop offset="0.52" stop-color="#10b981"/>
+      <stop offset="1" stop-color="#06b6d4"/>
+    </linearGradient>
+    <linearGradient id="shine" x1="136" y1="80" x2="344" y2="394" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ffffff" stop-opacity="0.42"/>
+      <stop offset="0.5" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="16" stdDeviation="18" flood-color="#02130e" flood-opacity="0.34"/>
+    </filter>
+  </defs>
+  <rect width="512" height="512" rx="116" fill="#03110d"/>
+  <rect x="14" y="14" width="484" height="484" rx="106" fill="url(#bg)"/>
+  <path d="M86 184C121 80 274 35 408 98c-58-7-128 10-188 48-57 36-98 82-120 132-21-31-26-62-14-94Z" fill="url(#shine)"/>
+  <path d="M256 103 395 158v93c0 82-50 137-139 167-89-30-139-85-139-167v-93l139-55Z" fill="#03130d" fill-opacity="0.93" filter="url(#shadow)"/>
+  <path d="M256 135 366 178v73c0 64-36 107-110 135-74-28-110-71-110-135v-73l110-43Z" fill="#071f19" stroke="#78f5d0" stroke-opacity="0.3" stroke-width="4"/>
+  <path d="m185 256 45 45 98-107" fill="none" stroke="#6ee7b7" stroke-width="30" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="402" cy="105" r="17" fill="#cffafe" fill-opacity="0.88"/>
+</svg>
